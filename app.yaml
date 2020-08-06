@@ -1,0 +1,19 @@
+version: "0.0.1"
+
+name: "App Config"
+
+buildConfigs:
+    dockerfileMultistage: true
+    dockerfileLocation: "Dockerfile"
+
+appConfigs:
+    containers:
+        - name: "server-app"
+          envs:
+            - name: "ENV_FOO"
+              value: "foo_value"
+            - name: "ENV_BAR"
+              value: "bar_value"
+          ports:
+            - 8080
+            - 8081
