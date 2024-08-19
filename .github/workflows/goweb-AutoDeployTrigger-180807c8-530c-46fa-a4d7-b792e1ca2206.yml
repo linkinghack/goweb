@@ -1,0 +1,47 @@
+name: Trigger auto deployment for goweb
+
+# When this action will be executed
+on:
+  # Automatically trigger it when detected changes in repo
+  push:
+    branches: 
+      [ master ]
+    paths:
+    - '**'
+    - '.github/workflows/goweb-AutoDeployTrigger-180807c8-530c-46fa-a4d7-b792e1ca2206.yml'
+
+  # Allow manual trigger 
+  workflow_dispatch:      
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    permissions: 
+      id-token: write #This is required for requesting the OIDC JWT Token
+      contents: read #Required when GH token is used to authenticate with private repo
+
+    steps:
+      - name: Checkout to the branch
+        uses: actions/checkout@v2
+
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          client-id: ${{ secrets.GOWEB_AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.GOWEB_AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.GOWEB_AZURE_SUBSCRIPTION_ID }}
+
+      - name: Build and push container image to registry
+        uses: azure/container-apps-deploy-action@v2
+        with:
+          appSourcePath: ${{ github.workspace }} 
+          registryUrl: 
+          registryUsername: ${{ secrets.GOWEB_REGISTRY_USERNAME }}
+          registryPassword: ${{ secrets.GOWEB_REGISTRY_PASSWORD }}
+          containerAppName: goweb
+          resourceGroup: ContainerServiceGroup
+          imageToBuild: default/[parameters('containerAppName')]:${{ github.sha }}
+          _buildArgumentsKey_: |
+            _buildArgumentsValues_
+
+
